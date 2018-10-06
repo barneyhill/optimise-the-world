@@ -1,7 +1,9 @@
-let gdal = require('gdal')
+let GeoTIFF = require('geotiff')
 let getDepth = function(lat, long){
-  let dataset = gdal.open("/media/chrx/SSD/srtm_10_02.tif");
-  console.log(dataset.rasterSize.x);
+  let tiff = GeoTIFF.fromFile('/media/chrx/SSD/srtm_10_01.tif');
+  const image = tiff.getImage();
+  const width = image.getWidth();
+  return width;
 
 }
 module.exports.getDepth = getDepth;
