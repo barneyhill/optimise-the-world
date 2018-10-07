@@ -1,9 +1,15 @@
-let GeoTIFF = require('geotiff')
-let getDepth = function(lat, long){
-  const tiff = GeoTIFF.fromFile('/media/chrx/SSD/srtm_10_01.tif');
-  const image = tiff.getImage();
-  const width = image.getWidth();
-  return width;
-
+let hgt = require('node-hgt')
+let getDepth = async function(lat,long){
+	return 'AAA'
+	let tileset = new hgt.TileSet('/media/chrx/SSD/data/');
+    tileset.getElevation([lat,long], function(err, elevation) {
+    	console.log('...' + elevation);
+        if (err) {
+            console.log('getElevation failed: ' + err.message);
+        } else {
+            return elevation;
+        }
+        return 'Whoops'
+    });
 };
 module.exports.getDepth = getDepth;

@@ -17,6 +17,7 @@
   },
   "homepage": "https://github.com/barneyhill/gradient-descent#readme",
   "dependencies": {
-    "geotiff": "^1.0.0-beta.6"
+    "express": "^4.16.3",
+    "node-hgt": "^1.2.3"
   }
 }
