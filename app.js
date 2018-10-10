@@ -1,17 +1,24 @@
-const http = require('http');
-const hgt = require('node-hgt')
-const server = http.createServer(function(req, res){
-	console.log('Request was made: ' + req.url);
-	res.writeHead(200, {'Content-Type': 'text/plain'});
-	var tileset = new hgt.TileSet('/media/chrx/SSD/data/');
-	tileset.getElevation([57.99,11.9], function(err, elevation){
-		if (err){
-			return console.log(err);
-		};
-		console.log('Elevation:'+ elevation);
-		res.end(elevation.toString());
-	});
+const hgt = require('node-hgt');
+const express = require('express');
+const data = require('./data');
 
+var app = express();
+
+app.get('/elevation', function(req, res){
+	var tileset = new hgt.TileSet('/media/chrx/SSD/data/');
+	var start = new Date();
+	tileset.getElevation([req.query.lat, req.query.long], function(err, elevation) {
+  	if (err) {
+			console.log('getElevation failed: ' + err.message);
+      } else {
+				var end = new Date();
+				var time = end.getTime()-start.getTime();
+				res.send('Elevation: ' + elevation +',' + time);
+      };
+  });
 });
 
-server.listen(3000, '127.0.0.1');
+app.get('/descent', function(req, res){
+	data.getElevation(req.query.lat, req.query.long).then(elevation => res.send(elevation));
+});
+app.listen(8000);
