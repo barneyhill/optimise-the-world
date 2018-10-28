@@ -1,24 +1,55 @@
 const hgt = require('node-hgt');
-const express = require('express');
-const data = require('./data');
+const Koa = require('koa');
+const KoaRouter = require('koa-router')
+const path = require('path')
+var app = new Koa();
+const router = new KoaRouter
+const perf_hooks = require('perf_hooks')
+const util = require('util');
+hgt.TileSet.prototype.getElevationAsync = util.promisify(hgt.TileSet.prototype.getElevation);
 
-var app = express();
+var tileset = new hgt.TileSet('/media/chrx/SSD1/data/');
+var getDepth = async function(tileset, lat, long){
+	var elevation = await tileset.getElevationAsync([lat, long]);
+	return elevation;
+}
 
-app.get('/elevation', function(req, res){
-	var tileset = new hgt.TileSet('/media/chrx/SSD/data/');
-	var start = new Date();
-	tileset.getElevation([req.query.lat, req.query.long], function(err, elevation) {
-  	if (err) {
-			console.log('getElevation failed: ' + err.message);
-      } else {
-				var end = new Date();
-				var time = end.getTime()-start.getTime();
-				res.send('Elevation: ' + elevation +',' + time);
-      };
-  });
+var recursive_gradient_descent = async function(tileset, velocity, J_history, coords, alpha, gamma, i){
+	i-=1;
+	if (await i <= 0){return J_history};
+
+	var cost = await getDepth(tileset, coords[0], coords[1]);
+	await J_history.push([cost, coords[0], coords[1]]);
+	if (cost <= 0){return J_history};
+
+	var elev1 = getDepth(tileset, coords[0] + 0.001, coords[1]);
+	var elev2 = getDepth(tileset, coords[0] - 0.001, coords[1]);
+	var elev3 = getDepth(tileset, coords[0], coords[1] + 0.001);
+	var elev4 = getDepth(tileset, coords[0], coords[1] - 0.001);
+
+	var lat_slope = await elev1 / await elev2 - 1;
+	var lon_slope = await elev3 / await elev4 - 1;
+
+	velocity[0] = gamma * velocity[0] + alpha * lat_slope;
+	velocity[1] = gamma * velocity[1] + alpha * lon_slope;
+
+	coords[0] = coords[0] - velocity[0];
+	coords[1] = coords[1] - velocity[1];
+
+	console.log(coords[0], coords[1], i);
+
+	return recursive_gradient_descent(tileset, velocity, J_history, coords, alpha, gamma, i)
+}
+
+router.get('/', async ctx => {
+	ctx.body = JSON.stringify(await getDepth(tileset, 53.2734, -7.7783))
 });
 
-app.get('/descent', function(req, res){
-	data.getElevation(req.query.lat, req.query.long).then(elevation => res.send(elevation));
+router.get('/test', async ctx => {
+	var J_history = await recursive_gradient_descent(tileset, [0,0], [], [53.2734, -7.7783], 0.01, 0.99, 1000);
+	ctx.body = await JSON.stringify(J_history);
 });
-app.listen(8000);
+
+app.use(router.routes()).use(router.allowedMethods());
+
+app.listen(3002);
