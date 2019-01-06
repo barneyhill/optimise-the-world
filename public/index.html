@@ -125,7 +125,7 @@
   <body>
     <section class="container">
       <div class="dropdown">
-        <select name="one" class="dropdown-select">
+        <select name="one" class="dropdown-select" id="dropdown-algo">
           <option value="1">Momentum</option>
           <option value="2">Classical</option>
         </select>
@@ -152,6 +152,14 @@
           }
         ]
       };
+
+      function getParameters(){
+        var dropdown = document.getElementById("dropdown-algo");
+        var algo = ["momentum", "classical"][dropdown.value - 1]
+        var parameters = {"algo": algo}
+        return parameters
+      }
+
       function initMap() {
         map = new google.maps.Map(document.getElementById('map'), {
           center: {lat: 27.986065, lng: 86.922623},
@@ -176,7 +184,7 @@
         var start_marker;
         var end_marker;
         var descentPath;
-        
+
         function placeMarker(location) {
             if (start_marker){
               start_marker.setPosition(location);
@@ -197,18 +205,17 @@
         });
 
         function placeLine(location){
-          var url = "http://192.168.0.17:1234/gradient_descent_momentum?lat=" +location.lat() + "&lng=" + location.lng() + "&learning_rate=0.01&precision=0.001"
+          parameters = getParameters();
+          var url = "http://192.168.0.17:1234/gradient_descent?algo=" + parameters["algo"] + "&lat=" + location.lat() + "&lng=" + location.lng() + "&learning_rate=0.01&precision=0.001"
           var request = new XMLHttpRequest(); //creates a request object
           request.open("GET", url);
           request.send(); //sends a request to the server
           //following code executes once list of coordinates has been received
           request.onreadystatechange=(e)=>{
-            console.log(request.responseText)
             //parses server response into JSON format
             var coordinates = JSON.parse(request.responseText);
-            console.log(coordinates)
             //creates a multi-point line object that can be rendered in my google maps view
-            
+
             if (descentPath){
               descentPath.setPath(coordinates);
               end_marker.setPosition(location);

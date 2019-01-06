@@ -124,19 +124,26 @@ app.use(serve(__dirname + '/public'));
 //});
 
 router.get('/gradient_descent', async ctx => {
-	var history = await gradient_descent([[-1, parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)]], parseFloat(ctx.query.precision), parseFloat(ctx.query.learning_rate), 100);
-	coordinates = [];
-	for (item of history){coordinates.push({lat: item[1], lng: item[2]})};
-	ctx.body = await JSON.stringify(coordinates);
+	console.log(ctx.query);
+	if (ctx.query.algo == 'classical'){
+		console.log("Running classic")
+		var history = await gradient_descent([[-1, parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)]], parseFloat(ctx.query.precision), parseFloat(ctx.query.learning_rate), 1000);
+		coordinates = [];
+		for (item of history){coordinates.push({lat: item[1], lng: item[2]})};
+		ctx.body = await JSON.stringify(coordinates);
+	}
+	else if (ctx.query.algo == 'momentum') {
+		console.log("Running momentum")
+		var history = await momentum_gradient_descent([0,0], [[-1, parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)]], parseFloat(ctx.query.precision), parseFloat(ctx.query.learning_rate), 1000);
+		coordinates = [];
+		for (item of history){coordinates.push({lat: item[1], lng: item[2]})};
+		ctx.body = await JSON.stringify(coordinates);
+	}
+	else{
+		ctx.body = "invalid_algorithm"
+	}
 });
 
-router.get('/gradient_descent_momentum', async ctx => {
-	console.log("ran")
-	var history = await momentum_gradient_descent([0,0], [[-1, parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)]], parseFloat(ctx.query.precision), parseFloat(ctx.query.learning_rate), 100);
-	coordinates = [];
-	for (item of history){coordinates.push({lat: item[1], lng: item[2]})};
-	ctx.body = await JSON.stringify(coordinates);
-});
 
 app.use(router.routes()).use(router.allowedMethods());
 
