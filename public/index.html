@@ -18,6 +18,52 @@
         font: 13px/20px "Lucida Grande", Tahoma, Verdana, sans-serif;
         color: #404040;
       }
+      #precision-input{
+        z-index: 5;
+        display: inline-block;
+        position: absolute;
+        overflow: hidden;
+        left: 220px;
+        top: 4px;
+        width:60px;
+      }
+      #precision-text{
+        z-index: 5;
+        display: inline-block;
+        position: absolute;
+        overflow: hidden;
+        left: 155px;
+        top: -8px;
+      }
+
+      #lr-input{
+        z-index: 5;
+        display: inline-block;
+        position: absolute;
+        overflow: hidden;
+        left: 380px;
+        top: 4px;
+        width:60px;
+      }
+      #lr-text{
+        z-index: 5;
+        display: inline-block;
+        position: absolute;
+        overflow: hidden;
+        left: 290px;
+        top: -8px;
+      }
+    
+      .box{
+        left: 150px;
+        z-index: 4;
+        display: inline-block;
+        position: absolute;
+        overflow: hidden;
+        width:300px;
+        height:30px;
+        background:#f2f2f2;
+      }
 
       .dropdown {
         z-index: 5;
@@ -130,6 +176,16 @@
           <option value="2">Classical</option>
         </select>
       </div>
+
+      <div class="box"></div>
+      <p id="precision-text">Precision:</p></div>
+      <input type="number" id="precision-input"
+       min="0" max="1" step=0.0001 value=0.001>
+      
+      <p id="lr-text">Learning Rate:</p>
+      <input type="number" id="lr-input"
+       min="0" max="1" step=0.01 value=0.01>
+
     </section>
     <div id="map"></div>
     <script>
@@ -154,9 +210,19 @@
       };
 
       function getParameters(){
+        
         var dropdown = document.getElementById("dropdown-algo");
-        var algo = ["momentum", "classical"][dropdown.value - 1]
-        var parameters = {"algo": algo}
+        var algo = ["momentum", "classical"][dropdown.value - 1];
+
+        var input_box = document.getElementById("precision-input");
+        var precision = input_box.value;
+
+        input_box = document.getElementById("lr-input");
+        var learning_rate = input_box.value;
+
+        var parameters = {"algo": algo,
+                          "precision": precision,
+                          "learning_rate": learning_rate};
         return parameters
       }
 
@@ -206,7 +272,7 @@
 
         function placeLine(location){
           parameters = getParameters();
-          var url = "http://192.168.0.17:1234/gradient_descent?algo=" + parameters["algo"] + "&lat=" + location.lat() + "&lng=" + location.lng() + "&learning_rate=0.01&precision=0.001"
+          var url = "http://localhost:1234/gradient_descent?algo=" + parameters["algo"] + "&lat=" + location.lat() + "&lng=" + location.lng() + "&learning_rate=" + parameters["learning_rate"] + "&precision=" + parameters["precision"];
           var request = new XMLHttpRequest(); //creates a request object
           request.open("GET", url);
           request.send(); //sends a request to the server
@@ -244,6 +310,7 @@
       }
 
     </script>
+    <script scr="https://cdn.jsdelivr.net/npm/vue"></script>
     <script>
     function loadScript(){
       var script = document.createElement('script');
