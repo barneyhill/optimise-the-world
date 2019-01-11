@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html>
   <head>
+    <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
     <title>Simple Map</title>
     <meta name="viewport" content="initial-scale=1.0">
     <meta charset="utf-8">
@@ -10,12 +11,18 @@
       #map {
         height: 100%;
       }
+      #tester {
+        z-index: 3;
+        display: inline-block;
+        position: absolute;
+        overflow: hidden;
+      }
       /* Optional: Makes the sample page fill the window. */
       html, body {
         height: 100%;
         margin: 0;
         padding: 0;
-        font: 13px/20px "Lucida Grande", Tahoma, Verdana, sans-serif;
+        font: 13px/20px Tahoma, Verdana, sans-serif;
         color: #404040;
       }
       #precision-input{
@@ -65,7 +72,7 @@
         background:#f2f2f2;
       }
 
-      .dropdown {
+      .dropdown-algo {
         z-index: 5;
         display: inline-block;
         position: absolute;
@@ -84,7 +91,7 @@
         box-shadow: 0 1px 1px rgba(0, 0, 0, 0.08);
       }
 
-      .dropdown:before, .dropdown:after {
+      .dropdown-algo:before, .dropdown-algo:after {
         content: '';
         position: absolute;
         z-index: 2;
@@ -97,12 +104,12 @@
         pointer-events: none;
       }
 
-      .dropdown:before {
+      .dropdown-algo:before {
         border-bottom-style: solid;
         border-top: none;
       }
 
-      .dropdown:after {
+      .dropdown-algo:after {
         margin-top: 7px;
         border-top-style: solid;
         border-bottom: none;
@@ -143,9 +150,47 @@
         cursor: pointer;
       }
 
+      .dropbtn {
+        background-color: #4CAF50;
+        color: white;
+        padding: 6px;
+        font-size: 16px;
+        border: none;
+      }
+
+      /* The container <div> - needed to position the dropdown content */
+      .dropdown-graph {
+        left: 450px;
+        height: 600px;
+        z-index: 5;
+        display: inline-block;
+        position: absolute;
+        overflow: hidden;
+      }
+
+      /* Dropdown Content (Hidden by Default) */
+      .dropdown-content {
+        display: none;
+        position: relative;
+        background-color: #f1f1f1;
+        min-width: 500px;
+        box-shadow: 0px 8px 16px 0px rgba(0,0,0,0.2);
+        z-index: 1;
+      }
+
+
+      /* Change color of dropdown links on hover */
+      .dropdown-content a:hover {background-color: #ddd;}
+
+      /* Show the dropdown menu on hover */
+      .dropbtn:hover .dropdown-content {display: block;}
+
+      /* Change the background color of the dropdown button when the dropdown content is shown */
+      .dropbtn:hover .dropbtn {background-color: #3e8e41;}
+
       /* Fix for IE 8 putting the arrows behind the select element. */
 
-      .lt-ie9 .dropdown {
+      .lt-ie9 .dropdown-algo {
         z-index: 1;
       }
 
@@ -170,7 +215,7 @@
   </head>
   <body>
     <section class="container">
-      <div class="dropdown">
+      <div class="dropdown-algo">
         <select name="one" class="dropdown-select" id="dropdown-algo">
           <option value="1">Momentum</option>
           <option value="2">Classical</option>
@@ -185,10 +230,18 @@
       <p id="lr-text">Learning Rate:</p>
       <input type="number" id="lr-input"
        min="0" max="1" step=0.01 value=0.01>
-
+      <div class="dropdown-graph">
+        <button class="dropbtn">Graph Data</button>
+        <div class="dropdown-content">
+          <div id="tester" style="width:600px;height:250px;"></div>
+        </div>
+      </div>
+      <script type="text/javascript">
+      </script>
     </section>
     <div id="map"></div>
     <script>
+
       var map;
       var styles = {
         hide: [
@@ -272,15 +325,34 @@
 
         function placeLine(location){
           parameters = getParameters();
-          var url = "http://localhost:1234/gradient_descent?algo=" + parameters["algo"] + "&lat=" + location.lat() + "&lng=" + location.lng() + "&learning_rate=" + parameters["learning_rate"] + "&precision=" + parameters["precision"];
+          var url = "http://192.168.1.4:8888/gradient_descent?algo=" + parameters["algo"] + "&lat=" + location.lat() + "&lng=" + location.lng() + "&learning_rate=" + parameters["learning_rate"] + "&precision=" + parameters["precision"];
           var request = new XMLHttpRequest(); //creates a request object
           request.open("GET", url);
           request.send(); //sends a request to the server
           //following code executes once list of coordinates has been received
           request.onreadystatechange=(e)=>{
             //parses server response into JSON format
-            var coordinates = JSON.parse(request.responseText);
-            //creates a multi-point line object that can be rendered in my google maps view
+            var data = JSON.parse(request.responseText);
+            var depth = data.map(el => el.depth);
+
+            var coordinates = data;
+            var data = [];
+            for (var i=1; i<=depth.length; i++){
+              data.push(i);
+            }
+
+            var trace = {
+              x: data,
+              y: depth,
+              mode: 'lines',
+              type: 'scatter'
+            };
+            console.log(trace);
+            TESTER = document.getElementById('tester');
+            layout = {
+              autosize: true
+            };
+            Plotly.newPlot(TESTER, [trace], layout);
 
             if (descentPath){
               descentPath.setPath(coordinates);
@@ -310,7 +382,6 @@
       }
 
     </script>
-    <script scr="https://cdn.jsdelivr.net/npm/vue"></script>
     <script>
     function loadScript(){
       var script = document.createElement('script');

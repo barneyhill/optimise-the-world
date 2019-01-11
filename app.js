@@ -14,7 +14,7 @@ const util = require('util');
 
 hgt.TileSet.prototype.getElevationAsync = util.promisify(hgt.TileSet.prototype.getElevation); // Converts "getELevation" file into an asynchronous function
 
-var tileset = new hgt.TileSet('/media/chrx/SSD3/data/'); // Creates a cache of all hgt files found on the SSD
+var tileset = new hgt.TileSet('/media/chrx/SSD4/data/'); // Creates a cache of all hgt files found on the SSD
 
 // getDepth returns an elevation given two coordinates
 var getDepth = async function(lat, lng){
@@ -127,16 +127,16 @@ router.get('/gradient_descent', async ctx => {
 	console.log(ctx.query);
 	if (ctx.query.algo == 'classical'){
 		console.log("Running classic")
-		var history = await gradient_descent([[-1, parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)]], parseFloat(ctx.query.precision), parseFloat(ctx.query.learning_rate), 100);
+		var history = await gradient_descent([[getDepth(parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)), parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)]], parseFloat(ctx.query.precision), parseFloat(ctx.query.learning_rate), 100);
 		coordinates = [];
-		for (item of history){coordinates.push({lat: item[1], lng: item[2]})};
+		for (item of history){coordinates.push({lat: item[1], lng: item[2], depth: item[0]})};
 		ctx.body = await JSON.stringify(coordinates);
 	}
 	else if (ctx.query.algo == 'momentum') {
 		console.log("Running momentum")
-		var history = await momentum_gradient_descent([0,0], [[-1, parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)]], parseFloat(ctx.query.precision), parseFloat(ctx.query.learning_rate), 100);
+		var history = await momentum_gradient_descent([0,0], [[getDepth(parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)), parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)]], parseFloat(ctx.query.precision), parseFloat(ctx.query.learning_rate), 100);
 		coordinates = [];
-		for (item of history){coordinates.push({lat: item[1], lng: item[2]})};
+		for (item of history){coordinates.push({lat: item[1], lng: item[2], depth: item[0]})};
 		ctx.body = await JSON.stringify(coordinates);
 	}
 	else{
@@ -147,4 +147,4 @@ router.get('/gradient_descent', async ctx => {
 
 app.use(router.routes()).use(router.allowedMethods());
 
-app.listen(1234);
+app.listen(8888);
