@@ -125,22 +125,32 @@ app.use(serve(__dirname + '/public'));
 
 router.get('/gradient_descent', async ctx => {
 	console.log(ctx.query);
-	if (ctx.query.algo == 'classical'){
-		console.log("Running classic")
-		var history = await gradient_descent([[getDepth(parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)), parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)]], parseFloat(ctx.query.precision), parseFloat(ctx.query.learning_rate), 100);
-		coordinates = [];
-		for (item of history){coordinates.push({lat: item[1], lng: item[2], depth: item[0]})};
-		ctx.body = await JSON.stringify(coordinates);
-	}
-	else if (ctx.query.algo == 'momentum') {
-		console.log("Running momentum")
-		var history = await momentum_gradient_descent([0,0], [[getDepth(parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)), parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)]], parseFloat(ctx.query.precision), parseFloat(ctx.query.learning_rate), 100);
-		coordinates = [];
-		for (item of history){coordinates.push({lat: item[1], lng: item[2], depth: item[0]})};
-		ctx.body = await JSON.stringify(coordinates);
+	if (parseFloat(ctx.query.precision) > 0 && parseFloat(ctx.query.precision) < 1){
+		if (parseFloat(ctx.query.learning_rate) > 0 && parseFloat(ctx.query.learning_rate) < 1){
+			if (ctx.query.algo == 'classical'){
+				console.log("Running classic");
+				var history = await gradient_descent([[getDepth(parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)), parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)]], parseFloat(ctx.query.precision), parseFloat(ctx.query.learning_rate), 1000);
+				coordinates = [];
+				for (item of history){coordinates.push({lat: item[1], lng: item[2], depth: item[0]})};
+				ctx.body = await JSON.stringify(coordinates);
+			}
+			else if (ctx.query.algo == 'momentum') {
+				console.log("Running momentum");
+				var history = await momentum_gradient_descent([0,0], [[getDepth(parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)), parseFloat(ctx.query.lat), parseFloat(ctx.query.lng)]], parseFloat(ctx.query.precision), parseFloat(ctx.query.learning_rate), 1000);
+				coordinates = [];
+				for (item of history){coordinates.push({lat: item[1], lng: item[2], depth: item[0]})};
+				ctx.body = await JSON.stringify(coordinates);
+			}
+			else{
+				ctx.body = "invalid_algorithm";
+			}
+		}
+		else{
+			ctx.body = "learning rate out of range";
+		}
 	}
 	else{
-		ctx.body = "invalid_algorithm"
+		ctx.body = "precision out of range"
 	}
 });
 
