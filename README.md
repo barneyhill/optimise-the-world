@@ -1,5 +1,4 @@
-# Physical Gradient Descent
-Execute gradient descent on a terrain function of the world!
+# Optimise The World! 
 <p align="center">
   <img width: 100% height: auto src="https://github.com/barneyhill/gradient-descent/blob/master/website.gif?raw=true">
 </p>
